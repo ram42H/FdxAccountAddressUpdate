@@ -8,6 +8,7 @@ using System.Net;
 using System.Runtime.Serialization.Json;
 using System.ServiceModel;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace FdxAccountAddressUpdate
@@ -330,12 +331,14 @@ namespace FdxAccountAddressUpdate
                                         if (account_context.Attributes.Contains("telephone1"))
                                         {
                                             step = 24440200;
-                                            lead["telephone2"] = account_context.Attributes["telephone1"].ToString();
+                                            lead["telephone2"] = Regex.Replace(account_context.Attributes["telephone1"].ToString(),@"[^0-9]+", "");
+                                            //lead["telephone2"] = account_context.Attributes["telephone1"].ToString();
                                         }
                                         else if (account.Attributes.Contains("telephone1"))
                                         {
                                             step = 24440202;
-                                            lead["telephone2"] = account.Attributes["telephone1"].ToString();
+                                            lead["telephone2"] = Regex.Replace(account.Attributes["telephone1"].ToString(),@"[^0-9]+", "");
+                                            //lead["telephone2"] = account.Attributes["telephone1"].ToString();
                                         }
                                         else
                                         {
@@ -346,12 +349,14 @@ namespace FdxAccountAddressUpdate
                                         if (account_context.Attributes.Contains("telephone2"))
                                         {
                                             step = 24440220;
-                                            lead["telephone3"] = account_context.Attributes["telephone2"].ToString();
+                                            lead["telephone3"] = Regex.Replace(account_context.Attributes["telephone2"].ToString(),@"[^0-9]+", "");
+                                            //lead["telephone3"] = account_context.Attributes["telephone2"].ToString();
                                         }
                                         else if (account.Attributes.Contains("telephone2"))
                                         {
                                             step = 24440222;
-                                            lead["telephone3"] = account.Attributes["telephone2"].ToString();
+                                            lead["telephone3"] = Regex.Replace(account.Attributes["telephone2"].ToString(),@"[^0-9]+", "");
+                                            //lead["telephone3"] = account.Attributes["telephone2"].ToString();
                                         }
                                         else
                                         {
