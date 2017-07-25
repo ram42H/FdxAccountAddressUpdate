@@ -53,7 +53,7 @@ namespace FdxAccountAddressUpdate
                     Guid fdx_stateid = Guid.Empty;
                     int new_fdx_gonogo = 0;
                     //Declare URL with the website link to call the Web API
-                    string url = "http://smartcrmsync.1800dentist.com/api/lead/updateleadasync?";
+                    string url = "http://smartcrmsync.1800dentist.com/api/lead/updatelead?";
                     //string url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/updatelead?";
                     string apiParm = "";
                     #endregion
@@ -121,7 +121,8 @@ namespace FdxAccountAddressUpdate
                         if (account.Attributes.Contains("fdx_goldmineaccountnumber"))
                         {
                             old_fdx_goldmineaccountnumber = account.Attributes["fdx_goldmineaccountnumber"].ToString();
-                            apiParm += string.Format("&AccountNo_in={0}", old_fdx_goldmineaccountnumber);
+                            //Encoding the GM Account Number to resolve issue with Special Characters
+                            apiParm += string.Format("&AccountNo_in={0}", WebUtility.UrlEncode(old_fdx_goldmineaccountnumber));
                         }
 
                         step = 296;
