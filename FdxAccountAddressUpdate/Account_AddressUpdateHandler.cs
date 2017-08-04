@@ -53,8 +53,16 @@ namespace FdxAccountAddressUpdate
                     Guid fdx_stateid = Guid.Empty;
                     int new_fdx_gonogo = 0;
                     //Declare URL with the website link to call the Web API
+
+                    //1. For Pointing to Dev
                     string url = "http://smartcrmsync.1800dentist.com/api/lead/updatelead?";
+
+                    //2. For Pointing to Stage
+                    //string url = "http://smartcrmsyncstage.1800dentist.com/api/lead/updatelead?";
+
+                    //3. For Pointing to Production
                     //string url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/updatelead?";
+
                     string apiParm = "";
                     #endregion
 
@@ -229,7 +237,8 @@ namespace FdxAccountAddressUpdate
                         step = 238;
                         url += apiParm.Remove(0, 1);
 
-                        APIResponse accountObj = new APIResponse();
+                        #region Commented in order to implement this web api call using PUT instead of POST
+                        /*APIResponse accountObj = new APIResponse();
                         step = 240;
                         const string token = "8b6asd7-0775-4278-9bcb-c0d48f800112";
                         var uri = new Uri(url);
@@ -246,6 +255,30 @@ namespace FdxAccountAddressUpdate
                                         new DataContractJsonSerializer(typeof(APIResponse));
 
                             accountObj = (APIResponse)serializer.ReadObject(getResponse.GetResponseStream());
+                            step = 2422;
+                            account_context["fdx_gonogo"] = accountObj.goNoGo ? new OptionSetValue(756480000) : new OptionSetValue(756480001);
+                            step = 2424;
+                            new_fdx_gonogo = accountObj.goNoGo ? 756480000 : 756480001;
+                        }*/
+                        #endregion
+
+                        API_PutResponse accountObj = new API_PutResponse();
+                        step = 240;
+                        const string token = "8b6asd7-0775-4278-9bcb-c0d48f800112";
+                        var uri = new Uri(url);
+                        var request = WebRequest.Create(uri);
+                        request.Method = WebRequestMethods.Http.Put;
+                        request.ContentType = "application/json";
+                        request.ContentLength = 0;
+                        request.Headers.Add("Authorization", token);
+                        step = 242;
+                        using (var getResponse = request.GetResponse())
+                        {
+                            step = 2420;
+                            DataContractJsonSerializer serializer =
+                                        new DataContractJsonSerializer(typeof(API_PutResponse));
+
+                            accountObj = (API_PutResponse)serializer.ReadObject(getResponse.GetResponseStream());
                             step = 2422;
                             account_context["fdx_gonogo"] = accountObj.goNoGo ? new OptionSetValue(756480000) : new OptionSetValue(756480001);
                             step = 2424;

@@ -100,6 +100,7 @@
   <ItemGroup>
     <Compile Include="Account_AddressUpdateHandler.cs" />
     <Compile Include="APIResponse.cs" />
+    <Compile Include="API_PutResponse.cs" />
     <Compile Include="CRMQueryExpression.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
