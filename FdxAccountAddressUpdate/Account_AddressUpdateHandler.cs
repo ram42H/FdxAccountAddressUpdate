@@ -23,7 +23,7 @@ namespace FdxAccountAddressUpdate
 
             int step = 0;
 
-            if (context.InputParameters.Contains("Target") && context.InputParameters["Target"] is Entity)
+            if (context.InputParameters.Contains("Target") && context.InputParameters["Target"] is Entity && context.Depth == 1)
             {
                 try
                 {
@@ -55,13 +55,13 @@ namespace FdxAccountAddressUpdate
                     //Declare URL with the website link to call the Web API
 
                     //1. For Pointing to Dev
-                    string url = "http://smartcrmsync.1800dentist.com/api/lead/updatelead?";
+                    //string url = "http://smartcrmsync.1800dentist.com/api/lead/updatelead?";
 
                     //2. For Pointing to Stage
                     //string url = "http://smartcrmsyncstage.1800dentist.com/api/lead/updatelead?";
 
                     //3. For Pointing to Production
-                    //string url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/updatelead?";
+                    string url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/updatelead?";
 
                     string apiParm = "";
                     #endregion
