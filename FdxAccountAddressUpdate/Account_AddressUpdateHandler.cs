@@ -16,8 +16,12 @@ namespace FdxAccountAddressUpdate
     public class Account_AddressUpdateHandler : IPlugin
     {
         public void Execute(IServiceProvider serviceProvider)
-
         {
+            string DEV_ENVIRONMENT_URL = "http://SMARTCRMSync.1800dentist.com/api";
+            string STAGE_ENVIRONMENT_URL = "http://SMARTCRMSyncStage.1800dentist.com/api";
+            string PROD_ENVIRONMENT_URL = "http://SMARTCRMSync.1800dentist.com/api";
+            string smartCrmSyncWebServiceUrl = STAGE_ENVIRONMENT_URL;
+
             ITracingService tracingService = (ITracingService)serviceProvider.GetService(typeof(ITracingService));
 
             IPluginExecutionContext context = (IPluginExecutionContext)serviceProvider.GetService(typeof(IPluginExecutionContext));
@@ -53,14 +57,7 @@ namespace FdxAccountAddressUpdate
                     int new_fdx_gonogo = 0;
                     //Declare URL with the website link to call the Web API
 
-                    //1. For Pointing to Dev
-                    //string url = "http://smartcrmsync.1800dentist.com/api/lead/updatelead?";
-
-                    //2. For Pointing to Stage
-                    //string url = "http://smartcrmsyncstage.1800dentist.com/api/lead/updatelead?";
-
-                    //3. For Pointing to Production
-                    string url = "http://SMARTCRMSyncProd.1800dentist.com/api/lead/updatelead?";
+                    string url = smartCrmSyncWebServiceUrl + "/lead/updatelead?";
 
                     string apiParm = "";
                     #endregion
@@ -433,8 +430,6 @@ namespace FdxAccountAddressUpdate
                             QueryExpression opportunityQuery = CRMQueryExpression.getQueryExpression("opportunity", new ColumnSet("fdx_gonogo", "parentaccountid", "statecode"), new CRMQueryExpression[] { new CRMQueryExpression("fdx_goldmineaccountnumber", ConditionOperator.Equal, old_fdx_goldmineaccountnumber) });
                             step = 2462;
                             EntityCollection opportunityEntities = service.RetrieveMultiple(opportunityQuery);
-                            tracingService.Trace("Count of Opportunities" + opportunityEntities.Entities.Count);
-                            tracingService.Trace("fdx_goldmineaccountnumber " + old_fdx_goldmineaccountnumber);
                             step = 2464;
                             for (int i = 0; i < opportunityEntities.Entities.Count; i++)
                             {
@@ -453,8 +448,6 @@ namespace FdxAccountAddressUpdate
                                         step = 2464002;
                                         opportunity["fdx_gonogo"] = new OptionSetValue(new_fdx_gonogo);
                                         step = 2464004;
-                                        tracingService.Trace("Statecode " + ((OptionSetValue)opportunityEntities.Entities[i]["statecode"]).Value);
-                                        tracingService.Trace("Statecode " + opportunityEntities.Entities[i].FormattedValues["statecode"]);
                                         if (((OptionSetValue)opportunityEntities.Entities[i]["statecode"]).Value == 0)
                                         {
                                             UpdateProspectDataOnOpportunity(opportunity, prospectData);
@@ -497,6 +490,7 @@ namespace FdxAccountAddressUpdate
             prospectData.PPRRate = apiResponse.pprRate;
             prospectData.SubRate = apiResponse.subRate;
             prospectData.Radius = apiResponse.prospectRadius;
+            prospectData.LastUpdated = DateTime.UtcNow;
             return prospectData;
         }
 
@@ -523,7 +517,8 @@ namespace FdxAccountAddressUpdate
                 accountRecord["fdx_subrate"] = new Money(prospectData.SubRate.Value);
             if (prospectData.Radius.HasValue)
                 accountRecord["fdx_prospectradius"] = prospectData.Radius;
-            accountRecord["fdx_prospectdatalastupdated"] = DateTime.UtcNow;
+            if (prospectData.LastUpdated.HasValue)
+                accountRecord["fdx_prospectdatalastupdated"] = prospectData.LastUpdated.Value;
             impersonatedService.Update(accountRecord);
         }
 
@@ -549,7 +544,8 @@ namespace FdxAccountAddressUpdate
                 leadRecord["fdx_prospectradius"] = prospectData.Radius;
             if (!string.IsNullOrEmpty(prospectData.PriceListName))
                 leadRecord["fdx_prospectpricelistname"] = prospectData.PriceListName;
-            leadRecord["fdx_prospectdatalastupdated"] = DateTime.UtcNow;
+            if (prospectData.LastUpdated.HasValue)
+                leadRecord["fdx_prospectdatalastupdated"] = prospectData.LastUpdated.Value;
         }
 
         private void UpdateProspectDataOnOpportunity(Entity opportunity, ProspectData prospectData)
@@ -574,7 +570,8 @@ namespace FdxAccountAddressUpdate
                 opportunity["fdx_prospectradius"] = prospectData.Radius;
             if (!string.IsNullOrEmpty(prospectData.PriceListName))
                 opportunity["fdx_pricelistname"] = prospectData.PriceListName;
-            opportunity["fdx_prospectdatalastupdated"] = DateTime.UtcNow;
+            if (prospectData.LastUpdated.HasValue)
+                opportunity["fdx_prospectdatalastupdated"] = prospectData.LastUpdated.Value;
         }
 
         private string GetProspectDataString(ProspectData prospectData)
