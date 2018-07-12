@@ -19,8 +19,8 @@ namespace FdxAccountAddressUpdate
         {
             string DEV_ENVIRONMENT_URL = "http://SMARTCRMSync.1800dentist.com/api";
             string STAGE_ENVIRONMENT_URL = "http://SMARTCRMSyncStage.1800dentist.com/api";
-            string PROD_ENVIRONMENT_URL = "http://SMARTCRMSync.1800dentist.com/api";
-            string smartCrmSyncWebServiceUrl = STAGE_ENVIRONMENT_URL;
+            string PROD_ENVIRONMENT_URL = "http://SMARTCRMSyncProd.1800dentist.com/api";
+            string smartCrmSyncWebServiceUrl = PROD_ENVIRONMENT_URL;
 
             ITracingService tracingService = (ITracingService)serviceProvider.GetService(typeof(ITracingService));
 
@@ -37,7 +37,7 @@ namespace FdxAccountAddressUpdate
 
                     if (account_context.LogicalName != "account")
                         return;
-                
+
                     #region Declare and Initialize required Variables
                     step = 11;
                     IOrganizationServiceFactory serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
@@ -55,6 +55,7 @@ namespace FdxAccountAddressUpdate
                     Guid fdx_zipid = Guid.Empty;
                     Guid fdx_stateid = Guid.Empty;
                     int new_fdx_gonogo = 0;
+
                     //Declare URL with the website link to call the Web API
 
                     string url = smartCrmSyncWebServiceUrl + "/lead/updatelead?";
@@ -209,7 +210,7 @@ namespace FdxAccountAddressUpdate
                                 }
                             }
                         }
-                        else if(fdx_stateprovinceid != null)
+                        else if (fdx_stateprovinceid != null)
                         {
                             step = 2344;
                             apiParm += string.Format("&State={0}", fdx_stateprovinceid);
@@ -283,7 +284,7 @@ namespace FdxAccountAddressUpdate
                             account_context["fdx_gonogo"] = accountObj.goNoGo ? new OptionSetValue(756480000) : new OptionSetValue(756480001);
                             step = 2424;
                             new_fdx_gonogo = accountObj.goNoGo ? 756480000 : 756480001;
-                           
+
                         }
                         EntityCollection priceLists = GetPriceListByName(accountObj.priceListName, service);
                         EntityCollection prospectGroups = GetProspectGroupByName(accountObj.prospectGroup, service);
@@ -315,7 +316,7 @@ namespace FdxAccountAddressUpdate
                                     step = 244400;
                                     if (((EntityReference)leadEntities.Entities[i].Attributes["parentaccountid"]).Id == account_context.Id)
                                     {
-                                        step = 2444000;                                        
+                                        step = 2444000;
                                         Entity lead = new Entity("lead")
                                         {
                                             Id = leadEntities.Entities[i].Id
@@ -377,13 +378,13 @@ namespace FdxAccountAddressUpdate
                                         if (account_context.Attributes.Contains("telephone1"))
                                         {
                                             step = 24440200;
-                                            lead["telephone2"] = Regex.Replace(account_context.Attributes["telephone1"].ToString(),@"[^0-9]+", "");
+                                            lead["telephone2"] = Regex.Replace(account_context.Attributes["telephone1"].ToString(), @"[^0-9]+", "");
                                             //lead["telephone2"] = account_context.Attributes["telephone1"].ToString();
                                         }
                                         else if (account.Attributes.Contains("telephone1"))
                                         {
                                             step = 24440202;
-                                            lead["telephone2"] = Regex.Replace(account.Attributes["telephone1"].ToString(),@"[^0-9]+", "");
+                                            lead["telephone2"] = Regex.Replace(account.Attributes["telephone1"].ToString(), @"[^0-9]+", "");
                                             //lead["telephone2"] = account.Attributes["telephone1"].ToString();
                                         }
                                         else
@@ -395,13 +396,13 @@ namespace FdxAccountAddressUpdate
                                         if (account_context.Attributes.Contains("telephone2"))
                                         {
                                             step = 24440220;
-                                            lead["telephone3"] = Regex.Replace(account_context.Attributes["telephone2"].ToString(),@"[^0-9]+", "");
+                                            lead["telephone3"] = Regex.Replace(account_context.Attributes["telephone2"].ToString(), @"[^0-9]+", "");
                                             //lead["telephone3"] = account_context.Attributes["telephone2"].ToString();
                                         }
                                         else if (account.Attributes.Contains("telephone2"))
                                         {
                                             step = 24440222;
-                                            lead["telephone3"] = Regex.Replace(account.Attributes["telephone2"].ToString(),@"[^0-9]+", "");
+                                            lead["telephone3"] = Regex.Replace(account.Attributes["telephone2"].ToString(), @"[^0-9]+", "");
                                             //lead["telephone3"] = account.Attributes["telephone2"].ToString();
                                         }
                                         else
@@ -433,10 +434,14 @@ namespace FdxAccountAddressUpdate
                             step = 2464;
                             for (int i = 0; i < opportunityEntities.Entities.Count; i++)
                             {
+                                tracingService.Trace("Count of Ops- " + opportunityEntities.Entities.Count);
                                 step = 24640;
                                 if (opportunityEntities.Entities[i].Attributes.Contains("parentaccountid"))
                                 {
+                                    tracingService.Trace("Account has Data");
                                     step = 246400;
+                                    tracingService.Trace("Opp Account Guid : " + ((EntityReference)opportunityEntities.Entities[i].Attributes["parentaccountid"]).Id + "ContextAccountGuid : " + account_context.Id);
+                                    tracingService.Trace("If Result: " + (((EntityReference)opportunityEntities.Entities[i].Attributes["parentaccountid"]).Id == account_context.Id));
                                     if (((EntityReference)opportunityEntities.Entities[i].Attributes["parentaccountid"]).Id == account_context.Id)
                                     {
                                         tracingService.Trace("Inside Opportunity Loop");
@@ -451,6 +456,8 @@ namespace FdxAccountAddressUpdate
                                         if (((OptionSetValue)opportunityEntities.Entities[i]["statecode"]).Value == 0)
                                         {
                                             UpdateProspectDataOnOpportunity(opportunity, prospectData);
+                                            opportunity["fdx_prospectscoreblankmessage"] = prospectData.ProspectScoreBlankMessage;
+                                            tracingService.Trace("error- " + prospectData.ProspectScoreBlankMessage);
                                             impersonatedService.Update(opportunity);
                                             tracingService.Trace("Prospect Data Updated on Opportunity!");
                                         }
@@ -491,6 +498,14 @@ namespace FdxAccountAddressUpdate
             prospectData.SubRate = apiResponse.subRate;
             prospectData.Radius = apiResponse.prospectRadius;
             prospectData.LastUpdated = DateTime.UtcNow;
+            if (!string.IsNullOrEmpty(apiResponse.prospectScoreBlankMessage))
+            {
+                prospectData.ProspectScoreBlankMessage = apiResponse.prospectScoreBlankMessage;
+            }
+            else
+            {
+                prospectData.ProspectScoreBlankMessage = "Valid Address";
+            }
             return prospectData;
         }
 
@@ -519,6 +534,8 @@ namespace FdxAccountAddressUpdate
                 accountRecord["fdx_prospectradius"] = prospectData.Radius;
             if (prospectData.LastUpdated.HasValue)
                 accountRecord["fdx_prospectdatalastupdated"] = prospectData.LastUpdated.Value;
+            if (!string.IsNullOrEmpty(prospectData.ProspectScoreBlankMessage))
+                accountRecord["fdx_prospectscoreblankmessage"] = prospectData.ProspectScoreBlankMessage;
             impersonatedService.Update(accountRecord);
         }
 
@@ -546,6 +563,8 @@ namespace FdxAccountAddressUpdate
                 leadRecord["fdx_prospectpricelistname"] = prospectData.PriceListName;
             if (prospectData.LastUpdated.HasValue)
                 leadRecord["fdx_prospectdatalastupdated"] = prospectData.LastUpdated.Value;
+            if (!string.IsNullOrEmpty(prospectData.ProspectScoreBlankMessage))
+                leadRecord["fdx_prospectscoreblankmessage"] = prospectData.ProspectScoreBlankMessage;
         }
 
         private void UpdateProspectDataOnOpportunity(Entity opportunity, ProspectData prospectData)
@@ -572,6 +591,8 @@ namespace FdxAccountAddressUpdate
                 opportunity["fdx_pricelistname"] = prospectData.PriceListName;
             if (prospectData.LastUpdated.HasValue)
                 opportunity["fdx_prospectdatalastupdated"] = prospectData.LastUpdated.Value;
+            if (!string.IsNullOrEmpty(prospectData.ProspectScoreBlankMessage))
+                opportunity["fdx_prospectscoreblankmessage"] = prospectData.ProspectScoreBlankMessage;
         }
 
         private string GetProspectDataString(ProspectData prospectData)
@@ -585,6 +606,7 @@ namespace FdxAccountAddressUpdate
             traceString += "PPRRate=" + Convert.ToString(prospectData.PPRRate) + Environment.NewLine;
             traceString += "SubRate=" + Convert.ToString(prospectData.SubRate) + Environment.NewLine;
             traceString += "Radius=" + Convert.ToString(prospectData.Radius) + Environment.NewLine;
+            traceString += "ProspectScoreBlankMessage=" + Convert.ToString(prospectData.ProspectScoreBlankMessage) + Environment.NewLine;
             return traceString;
         }
 

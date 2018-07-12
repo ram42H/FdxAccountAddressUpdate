@@ -15,5 +15,8 @@ namespace FdxAccountAddressUpdate
 
         [DataMember]
         public bool goNoGo { get; set; }
+
+        [DataMember]
+        public string prospectScoreBlankMessage { get; set; }
     }
 }
